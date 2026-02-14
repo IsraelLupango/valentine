@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Be My Valentine 💘</title>
+
+<style>
+body {
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: "Playfair Display", serif;
+    overflow: hidden;
+    
+    background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+    background-size: 400% 400%;
+    animation: pulseBG 6s ease infinite;
+}
+
+@keyframes pulseBG {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.container {
+    background: white;
+    padding: 25px;
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    max-width: 90%;
+    position: relative;
+    z-index: 5;
+}
+
+img {
+    width: 200px;
+    border-radius: 15px;
+    margin-bottom: 15px;
+}
+
+h1 {
+    color: #ff4d6d;
+}
+
+.bubble {
+    position: fixed;
+    background: white;
+    padding: 10px 18px;
+    border-radius: 20px;
+    font-size: 14px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.25);
+    z-index: 9999;
+    transition: all 0.15s ease;
+}
+
+/* Triangle pointer */
+.bubble::after {
+    content: "";
+    position: absolute;
+    bottom: -10px;
+    left: 20px;
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 10px solid white;
+}
+
+@keyframes shake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    50% { transform: translateX(5px); }
+    75% { transform: translateX(-5px); }
+    100% { transform: translateX(0); }
+}
+</style>
+</head>
+
+<body>
+
+<audio id="music" loop>
+    <source src="music.mp3" type="audio/mpeg">
+</audio>
+
+<div class="container" id="box">
+    <img id="gifImage" src="gif1.gif">
+    <h1 id="question">Will you be my Valentine baby? 💘</h1>
+    <button id="yesBtn">Yes 💖</button>
+    <button id="noBtn">No 😢</button>
+</div>
+
+<script>
+const noBtn = document.getElementById("noBtn");
+const yesBtn = document.getElementById("yesBtn");
+const question = document.getElementById("question");
+const box = document.getElementById("box");
+box.style.opacity = 0;
+box.style.transition = "opacity 1.2s";
+setTimeout(() => box.style.opacity = 1, 500);
+const music = document.getElementById("music");
+const gifImage = document.getElementById("gifImage");
+
+let yesCount = 0;
+let noCount = 0;
+
+// -------------------- HEARTS -------------------- //
+let hearts = [];
+let heartEmoji = "💖"; // default heart
+let heartInterval;
+
+// Create floating heart
+function createFloatingHeart() {
+    const heart = document.createElement("div");
+    heart.innerText = heartEmoji;
+    heart.style.position = "fixed";
+    heart.style.fontSize = Math.random() * 24 + 20 + "px"; // 20px - 44px
+    heart.style.left = Math.random() * window.innerWidth + "px";
+    heart.style.top = window.innerHeight + "px";
+    heart.style.zIndex = "2";
+    heart.style.pointerEvents = "none";
+    heart.style.transition = "transform 0.1s linear";
+    document.body.appendChild(heart);
+    hearts.push(heart);
+}
+
+// Animate hearts upward
+function animateHearts() {
+    hearts.forEach((heart, index) => {
+        let currentTop = parseFloat(heart.style.top);
+        heart.style.top = (currentTop - 2) + "px"; // move up 2px per frame
+
+        if(currentTop < -50){ // remove hearts that go off screen
+            heart.remove();
+            hearts.splice(index,1);
+        }
+    });
+    requestAnimationFrame(animateHearts);
+}
+
+// Start heart interval
+function startHearts() {
+    if(heartInterval) return; // prevent duplicates
+    heartInterval = setInterval(() => {
+        createFloatingHeart();
+    }, 500); // new heart every 0.5s
+}
+
+// Stop heart interval
+function stopHearts() {
+    clearInterval(heartInterval);
+    heartInterval = null;
+}
+
+// Initialize at page load
+startHearts();
+animateHearts();
+
+// ------------------ HEART EMOJI SWITCH ------------------ //
+// NO button changes heart to 😢
+noBtn.addEventListener("click", () => {
+    heartEmoji = "😢";
+});
+
+// YES button changes heart back to 💖
+yesBtn.addEventListener("click", () => {
+    heartEmoji = "💖";
+});
+
+//////////////////// NO BUTTON ////////////////////
+
+const achievement = document.createElement("div");
+achievement.style.position = "fixed";
+achievement.style.bottom = "15px";
+achievement.style.right = "15px";
+achievement.style.background = "rgba(0,0,0,0.6)";
+achievement.style.color = "white";
+achievement.style.padding = "8px 15px";
+achievement.style.borderRadius = "20px";
+achievement.style.fontSize = "13px";
+achievement.style.zIndex = "9999";
+achievement.innerText = "No taps: 0";
+document.body.appendChild(achievement);
+
+noBtn.addEventListener("click", () => {
+
+    noCount++;
+    updateNoText();
+    achievement.innerText = "No taps: " + noCount;
+    
+    randomMiniSurprise();
+    if (noCount === 40) {
+    showSecretReward();
+}
+
+    gifImage.src = "no.gif";
+
+    setTimeout(() => {
+        moveNoButton();
+    }, 80);
+
+    // 🔥 SECRET ENDING 30 TAPS (Emotional)
+if (noCount === 30) {
+    showEmotionalEnding();
+}
+
+    // 🏆 SECRET ENDING 50 TAPS (Achievement)
+    if (noCount === 50) {
+        showAchievementEnding();
+        return;
+    }
+
+    if (noCount % 5 === 0) {
+        showBubble();
+    }
+});
+
+function moveNoButton() {
+    const safeWidth = window.innerWidth - 120;
+    const safeHeight = window.innerHeight - 120;
+
+    const x = Math.random() * safeWidth;
+    const y = Math.random() * safeHeight;
+
+    noBtn.style.position = "fixed";
+    noBtn.style.left = x + "px";
+    noBtn.style.top = y + "px";
+    noBtn.style.transition = "all 0.2s ease";
+}
+
+let activeBubble = null;
+let bubbleInterval = null;
+
+function showBubble() {
+
+    if (activeBubble) return; // prevent multiple bubbles
+
+    activeBubble = document.createElement("div");
+    activeBubble.className = "bubble";
+    document.body.appendChild(activeBubble);
+
+    let message = "";
+
+    if (noCount >= 20) {
+        message = "Kasakit mo na 😞";
+    } else if (noCount >= 10) {
+        message = "Wow, habo gad laki 🙂";
+    } else {
+        message = "Tap mo kun kaya mo 🙄";
+    }
+
+    activeBubble.innerText = message;
+
+    // Make it continuously follow
+    bubbleInterval = setInterval(() => {
+        const rect = noBtn.getBoundingClientRect();
+
+        activeBubble.style.left = rect.left + rect.width / 2 - 60 + "px";
+        activeBubble.style.top = rect.top - 60 + "px";
+    }, 20);
+
+    // Remove after 2 seconds
+    setTimeout(() => {
+        clearInterval(bubbleInterval);
+        activeBubble.remove();
+        activeBubble = null;
+    }, 2000);
+}
+
+function positionBubble() {
+    if (!activeBubble) return;
+
+    const rect = noBtn.getBoundingClientRect();
+
+    activeBubble.style.left = rect.left + "px";
+    activeBubble.style.top = (rect.top - 50) + "px";
+}
+//////////////////////////////////////////////////
+// 💖 EMOTIONAL TWIST (30 taps - overlay only)
+//////////////////////////////////////////////////
+
+function showEmotionalEnding() {
+
+    const overlay = document.createElement("div");
+
+    overlay.style.position = "fixed";
+    overlay.style.top = "0";
+    overlay.style.left = "0";
+    overlay.style.width = "100%";
+    overlay.style.height = "100%";
+    overlay.style.background = "rgba(0,0,0,0.7)";
+    overlay.style.color = "white";
+    overlay.style.display = "flex";
+    overlay.style.flexDirection = "column";
+    overlay.style.justifyContent = "center";
+    overlay.style.alignItems = "center";
+    overlay.style.textAlign = "center";
+    overlay.style.padding = "20px";
+    overlay.style.boxSizing = "border-box";
+overlay.style.overflowY = "auto";
+    overlay.style.zIndex = "10000";
+
+    overlay.innerHTML = `
+        <h1>SAKIT 🙂</h1>
+        <p>
+        Anyway, even if you press No 30 times…<br><br>
+        I would still choose you.<br>
+        Over and over again 💖<br><br>
+        Loving you isn’t a button…
+        it’s a decision I make every day 😘.
+        </p>
+        <button id="continueBtn" style="
+            margin-top:20px;
+            padding:10px 20px;
+            border:none;
+            border-radius:20px;
+            background:#ff4d6d;
+            color:white;
+            font-size:16px;
+            white-space: normal;
+        ">Okay 😳</button>
+    `;
+
+    document.body.appendChild(overlay);
+
+    document.getElementById("continueBtn").onclick = function() {
+        overlay.remove();
+    };
+}
+//////////////////////////////////////////////////
+// 🏆 ACHIEVEMENT ENDING (50 taps)
+//////////////////////////////////////////////////
+
+function showAchievementEnding() {
+
+    box.innerHTML = `
+        <h1>🏆 ACHIEVEMENT UNLOCKED 🏆</h1>
+        <p>
+        Most Stubborn Girlfriend Award 😂💖<br><br>
+        50 No taps?? Okay patayin mo nalang ako, joke. congrats sa achievement mo 😘, iba ka talaga.
+        </p>
+        <button onclick="location.reload()">Play Again 🥰</button>
+    `;
+
+    noBtn.style.display = "none";
+    yesBtn.style.display = "none";
+
+    startMiniFireworks();
+}
+
+//////////////////////////////////////////////////
+// MINI FIREWORKS FOR ACHIEVEMENT
+//////////////////////////////////////////////////
+
+function startMiniFireworks() {
+
+    const canvas = document.createElement("canvas");
+document.body.appendChild(canvas);
+canvas.style.position = "fixed";
+canvas.style.top = "0";
+canvas.style.left = "0";
+canvas.style.zIndex = "1";
+canvas.style.pointerEvents = "none";
+
+const ctx = canvas.getContext("2d");
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    let particles = [];
+
+    function explode(x, y) {
+        for (let i = 0; i < 40; i++) {
+            particles.push({
+                x: x,
+                y: y,
+                speedX: (Math.random() - 0.5) * 6,
+                speedY: (Math.random() - 0.5) * 6,
+                life: 80
+            });
+        }
+    }
+
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        particles.forEach((p, index) => {
+            p.x += p.speedX;
+            p.y += p.speedY;
+            p.life--;
+
+            ctx.fillStyle = "gold";
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+            ctx.fill();
+
+            if (p.life <= 0) {
+                particles.splice(index, 1);
+            }
+        });
+
+        requestAnimationFrame(animate);
+    }
+
+    setInterval(() => {
+        explode(
+            Math.random() * canvas.width,
+            Math.random() * canvas.height / 2
+        );
+    }, 800);
+
+    animate();    
+}
+function updateNoText() {
+    switch(noCount) {
+        case 1:
+            question.innerHTML = "Luh? 🥺";
+            break;
+        case 3:
+            question.innerHTML = "Sakit 😢";
+            break;
+        case 5:
+            question.innerHTML = "Ga enjoy ka gad kakatap san no 😑";
+            break;
+        case 10:
+            question.innerHTML = "Masakit na talaga, bagan habo mo na sa akon 😔";
+            break;
+        case 15:
+            question.innerHTML = "No la gihapon? 🥺";
+            break;
+        case 20:
+            question.innerHTML = "Kahit na irog ka sana, ikaw gihapon love ko 💖";
+            break;
+        case 25:
+            question.innerHTML = "Wow, habo talaga 😭";
+            break;
+        case 29:
+            question.innerHTML = "Isad pa na tap and may mangyayari na talaga ☺️";
+            break;
+        default:
+            question.innerHTML = ""; // everything else is blank
+    }
+}
+//////////////////// YES BUTTON ////////////////////
+
+yesBtn.addEventListener("click", () => {
+    yesCount++;
+
+    if (yesCount === 1) {
+        question.innerHTML = "Are you sure? 😳";
+        gifImage.src = "gif2.gif";
+    } 
+    else if (yesCount === 2) {
+        question.innerHTML = "Weh? 🥺💗";
+        gifImage.src = "gif3.gif";
+    } 
+    else if (yesCount === 3) {
+        question.innerHTML = "Tap the No if habo mo.";
+        gifImage.src = "gif4.gif";
+    }
+    else if (yesCount === 4) {
+        question.innerHTML = "Wara na bawian pagkatapos sani 😊";
+        gifImage.src = "gif5.gif";
+    }
+    else {
+        music.volume = 0;
+        music.play();
+        fadeInMusic();
+
+        box.innerHTML = `
+    <h1>YEYYY, SUPER HAPPY KO PO BABY! 💖😭</h1>
+    <p id="typedText"></p>
+`; typeMessage("Thank you sa pag yes and pili sa akon 😘.\n\nI promise to love you, choose you, and annoy you forever hehe. Joke, ayaw lang an annoy kay mahirap na pag maurit ka, gusto ko lang sabihon na mahal na mahal ko ikaw, amo ini an panduha na nahimo ko since na send ko naman saimo an una, and amo ini an reason kaya inadalan ko mag code, irog ko ikaw sana kamahal, I will do anything para saimo, try new things para saimo para dili ka ma bored, and everything na sasabihon mo hihimuon ko talaga, mahal na mahal ko gad ikaw Precious Heart🥺, hihimuon ko an best ko para maging maayo and karapatdapat na boyfriend mo, sana magustohan mo ini na hinimo ko, I added some hidden things here para dili boring and ma enjoy mo, gusto ko kasi na maging happy ka, gusto ko na perme ka okay, basta ingatan mo sadiri mo and alagaan maayo, I love you very very very much, ikaw an dahilan kaya damo ako san nahihimuon, nag adal ako mag coding or programming para saimo, in other words, mas naga improve sadiri ko dahil saimo, basta ikaw an mundo ko, ikaw an dahilan kun nano man ako sugad, kaya gina himo ko an pinaka best ko para maging maayo na boyfriend saimo, gusto ko ikaw maging proud na ako an boyfriend mo, maging proud na ako an pinili mo, and na dili ka mag regret na nag kagusto ka sa akon. Mahal na mahal ko po okaw baby and napaka ganda mo, yun lang po. BYE, I love you so much!!! 😘😘😘");
+startHeartFireworks();
+    }
+});
+
+///////////////////// SECRET FEATURES /////////////////////
+
+// 1️⃣ Hidden Overlay at 40 No taps (image .jpg)
+function showSecretReward() {
+    const overlay = document.createElement("div");
+
+    overlay.style.position = "fixed";
+    overlay.style.top = "0";
+    overlay.style.left = "0";
+    overlay.style.width = "100%";
+    overlay.style.height = "100%";
+    overlay.style.background = "rgba(0,0,0,0.8)";
+    overlay.style.display = "flex";
+    overlay.style.flexDirection = "column";
+    overlay.style.justifyContent = "center";
+    overlay.style.alignItems = "center";
+    overlay.style.textAlign = "center";
+    overlay.style.padding = "20px";
+    overlay.style.boxSizing = "border-box";
+overlay.style.overflowY = "auto";
+    overlay.style.zIndex = "10000";
+    overlay.style.opacity = "0";
+    overlay.style.transition = "opacity 0.5s";
+
+    overlay.innerHTML = `
+        <img src="secret-image.jpg" style="width:250px; border-radius:20px; margin-bottom:15px;">
+        <h1 style="color:white;">Grabe na pag no sa akon, 40 times gad. 😞</h1>
+        <p style="
+    color:white;
+    font-size:18px;
+    max-width:90%;
+    margin:0 auto;
+    line-height:1.6;
+    word-break:break-word;
+    overflow-wrap:anywhere;
+    white-space:normal;
+">">Bisan after mo mag no 40 times, ikaw gihapon favorite ko 💘</p>
+        <button id="secretBtn" style="
+            margin-top:20px;
+            padding:10px 20px;
+            border:none;
+            border-radius:20px;
+            background:#ff4d6d;
+            color:white;
+            font-size:16px;
+        ">Close 💖</button>
+    `;
+
+    document.body.appendChild(overlay);
+
+    setTimeout(() => overlay.style.opacity = "1", 50);
+
+    document.getElementById("secretBtn").onclick = function() {
+        overlay.style.opacity = "0";
+        setTimeout(() => overlay.remove(), 500);
+    };
+}
+
+
+// 2️⃣ Long Press YES Button Easter Egg (image .jpg)
+let yesPressTimer;
+yesBtn.addEventListener("mousedown", startLongPress);
+yesBtn.addEventListener("touchstart", startLongPress);
+yesBtn.addEventListener("mouseup", cancelLongPress);
+yesBtn.addEventListener("mouseleave", cancelLongPress);
+yesBtn.addEventListener("touchend", cancelLongPress);
+
+function startLongPress() {
+    yesPressTimer = setTimeout(() => {
+        showYesEasterEgg();
+    }, 1000); // 1 second hold
+}
+
+function cancelLongPress() {
+    clearTimeout(yesPressTimer);
+}
+
+function showYesEasterEgg() {
+    const overlay = document.createElement("div");
+    overlay.style.position = "fixed";
+    overlay.style.top = "0";
+    overlay.style.left = "0";
+    overlay.style.width = "100%";
+    overlay.style.height = "100%";
+    overlay.style.background = "rgba(0,0,0,0.7)";
+    overlay.style.display = "flex";
+    overlay.style.flexDirection = "column";
+    overlay.style.justifyContent = "center";
+    overlay.style.alignItems = "center";
+    overlay.style.textAlign = "center";
+    overlay.style.padding = "20px";
+    overlay.style.zIndex = "10000";
+    overlay.style.opacity = "0";
+    overlay.style.transition = "opacity 0.5s";
+
+    overlay.innerHTML = `
+        <img src="yes-secret.jpg" style="width:200px; border-radius:20px; margin-bottom:15px;">
+        <h1 style="color:white;">Nahanap mo an dili dapat mahanap 😏💖</h1>
+        <p style="color:white; font-size:18px;">sorry kaniwang ko didi huhu.</p>
+        <button id="yesSecretBtn" style="
+            margin-top:20px;
+            padding:10px 20px;
+            border:none;
+            border-radius:20px;
+            background:#ff4d6d;
+            color:white;
+            font-size:16px;
+        ">Close 💖</button>
+    `;
+
+    document.body.appendChild(overlay);
+
+    setTimeout(() => overlay.style.opacity = "1", 50);
+
+    document.getElementById("yesSecretBtn").onclick = function() {
+        overlay.style.opacity = "0";
+        setTimeout(() => overlay.remove(), 500);
+    };
+}
+
+// 3️⃣ Random Mini Surprise (3% chance, image .jpg)
+function randomMiniSurprise() {
+
+    if (Math.random() < 0.03) { // 3% chance (change if you want)
+
+        const overlay = document.createElement("div");
+
+        overlay.style.position = "fixed";
+        overlay.style.top = "0";
+        overlay.style.left = "0";
+        overlay.style.width = "100%";
+        overlay.style.height = "100%";
+        overlay.style.background = "rgba(0,0,0,0.75)";
+        overlay.style.display = "flex";
+        overlay.style.flexDirection = "column";
+        overlay.style.justifyContent = "center";
+        overlay.style.alignItems = "center";
+        overlay.style.textAlign = "center";
+        overlay.style.padding = "20px";
+        overlay.style.zIndex = "10000";
+        overlay.style.opacity = "0";
+        overlay.style.transition = "opacity 0.4s";
+
+        overlay.innerHTML = `
+            <img src="mini-heart.jpg" 
+                 style="width:280px; border-radius:20px; margin-bottom:20px; box-shadow:0 10px 30px rgba(0,0,0,0.4);">
+                 
+            <h1 style="color:white; margin-bottom:10px;">
+                ☺️ RARE IMAGE ☺️
+            </h1>
+            
+            <p style="color:white; font-size:18px; max-width:300px;">
+                Sala mo kaya nakita mo ini na image 🙂, amo ina pindut pa san No. And Btw 3% chance lang ini na mag appear pag mag No ka, sala mo kay gin damo damo mo, hehe😚.
+            </p>
+
+            <button id="rareCloseBtn" style="
+                margin-top:25px;
+                padding:12px 25px;
+                border:none;
+                border-radius:25px;
+                background:#ff4d6d;
+                color:white;
+                font-size:16px;
+                cursor:pointer;
+            ">
+                Close 💖
+            </button>
+        `;
+
+        document.body.appendChild(overlay);
+
+        setTimeout(() => overlay.style.opacity = "1", 50);
+
+        document.getElementById("rareCloseBtn").onclick = function() {
+            overlay.style.opacity = "0";
+            setTimeout(() => overlay.remove(), 400);
+        };
+    }
+}
+
+//////////////////// FADE IN MUSIC ////////////////////
+
+function fadeInMusic() {
+    let volume = 0;
+    const interval = setInterval(() => {
+        if (volume < 1) {
+            volume += 0.05;
+            music.volume = volume;
+        } else {
+            clearInterval(interval);
+        }
+    }, 150);
+}
+
+//////////////////// HEART FIREWORKS ////////////////////
+
+function typeMessage(text) {
+
+    const element = document.getElementById("typedText");
+    let index = 0;
+
+    function type() {
+        if (index < text.length) {
+            if (text.charAt(index) === "\n") {
+                element.innerHTML += "<br>";
+            } else {
+                element.innerHTML += text.charAt(index);
+            }
+            index++;
+            setTimeout(type, 40);
+        }
+    }
+
+    type();
+}
+
+function startHeartFireworks() {
+
+    const canvas = document.createElement("canvas");
+    document.body.appendChild(canvas);
+    canvas.style.position = "fixed";
+canvas.style.top = "0";
+canvas.style.left = "0";
+canvas.style.zIndex = "1";
+canvas.style.pointerEvents = "none";
+    const ctx = canvas.getContext("2d");
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    let particles = [];
+
+    function createHeart(x, y) {
+        for (let t = 0; t < Math.PI * 2; t += 0.1) {
+            const heartX = 16 * Math.pow(Math.sin(t), 3);
+            const heartY =
+                13 * Math.cos(t) -
+                5 * Math.cos(2 * t) -
+                2 * Math.cos(3 * t) -
+                Math.cos(4 * t);
+
+            particles.push({
+                x: x,
+                y: y,
+                speedX: heartX * 0.22,
+                speedY: -heartY * 0.22,
+                life: 100
+            });
+        }
+    }
+
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        particles.forEach((p, index) => {
+            p.x += p.speedX;
+            p.y += p.speedY;
+            p.life--;
+
+            ctx.fillStyle = "hotpink";
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+            ctx.fill();
+
+            if (p.life <= 0) {
+                particles.splice(index, 1);
+            }
+        });
+
+        requestAnimationFrame(animate);
+    }
+
+    function launchRandomFireworks() {
+
+    // Random number of fireworks (1–3)
+    const count = Math.floor(Math.random() * 3) + 1;
+
+    for (let i = 0; i < count; i++) {
+
+        // Slight random delay between each burst
+        setTimeout(() => {
+            createHeart(
+                Math.random() * canvas.width,
+                Math.random() * canvas.height * 0.6
+            );
+        }, i * 400); // 400ms gap between bursts
+    }
+
+    // Random delay before next round (1.5s to 3s)
+    const nextDelay = 1500 + Math.random() * 1500;
+
+    setTimeout(launchRandomFireworks, nextDelay);
+}
+
+// Start the first launch
+launchRandomFireworks();
+
+    animate();
+}
+</script>
+
+</body>
+</html>
